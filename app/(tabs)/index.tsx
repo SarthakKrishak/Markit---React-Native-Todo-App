@@ -1,10 +1,15 @@
 import { StyleSheet,Text, TouchableOpacity, View } from "react-native";
 import { Link } from "expo-router";
 import useTheme from "@/hooks/useTheme";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function Index() {
 
   const { toggleDarkMode } = useTheme();
+
+  const todos = useQuery(api.todos.getTodos);
+
 
   return (
     <View style={styles.container}>
@@ -12,6 +17,7 @@ export default function Index() {
       <TouchableOpacity onPress={toggleDarkMode}>
         <Text>Toggle the mode</Text>
       </TouchableOpacity>
+
     </View>
   );
 }
