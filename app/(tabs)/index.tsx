@@ -1,35 +1,24 @@
 import { StyleSheet,Text, TouchableOpacity, View } from "react-native";
 import { Link } from "expo-router";
-import useTheme from "@/hooks/useTheme";
+import useTheme, { ColorScheme } from "@/hooks/useTheme";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { createHomeStyles } from "@/assets/styles/home.styles";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
 
-  const { toggleDarkMode } = useTheme();
+  const { toggleDarkMode,colors } = useTheme();
+  const homeStyles = createHomeStyles(colors);
 
   const todos = useQuery(api.todos.getTodos);
 
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.content}>What we are doing the things </Text>
+    <SafeAreaView style={homeStyles.safeArea}>
       <TouchableOpacity onPress={toggleDarkMode}>
         <Text>Toggle the mode</Text>
       </TouchableOpacity>
-
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1, // By default in column for mobiles
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-  },
-  content: {
-    fontSize: 22,
-  }
-});
