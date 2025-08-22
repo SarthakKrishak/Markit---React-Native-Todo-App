@@ -60,7 +60,6 @@ const Preferences = () => {
           ios_backgroundColor={colors.border}
         />
       </View>
-
     </LinearGradient>
   );
 };

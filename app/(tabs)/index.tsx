@@ -1,3 +1,15 @@
+import { createHomeStyles } from "@/assets/styles/home.styles";
+import EmptyState from "@/components/EmptyState";
+import Header from "@/components/Header";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import TodoInput from "@/components/TodoInput";
+import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
+import useTheme from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery } from "convex/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
 import {
   Alert,
   FlatList,
@@ -7,39 +19,35 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import useTheme from "@/hooks/useTheme";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { createHomeStyles } from "@/assets/styles/home.styles";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import Header from "@/components/Header";
-import TodoInput from "@/components/TodoInput";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { Doc, Id } from "@/convex/_generated/dataModel";
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import EmptyState from "@/components/EmptyState";
 
 type Todo = Doc<"todos">;
 
 export default function Index() {
   const { colors } = useTheme();
-  const homeStyles = createHomeStyles(colors);
-
-  const todos = useQuery(api.todos.getTodos);
-  const loading = todos === undefined;
 
   const [editingId, setEditingId] = useState<Id<"todos"> | null>(null);
   const [editText, setEditText] = useState("");
 
+  const homeStyles = createHomeStyles(colors);
+
+  const todos = useQuery(api.todos.getTodos);
   const toggleTodo = useMutation(api.todos.toggleTodo);
   const deleteTodo = useMutation(api.todos.deleteTodo);
   const updateTodo = useMutation(api.todos.updateTodo);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  const isLoading = todos === undefined;
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const handleToggleTodo = async (id: Id<"todos">) => {
+    try {
+      await toggleTodo({ id });
+    } catch (error) {
+      console.log("Error toggling todo", error);
+      Alert.alert("Error", "Failed to toggle todo");
+    }
+  };
 
   const handleDeleteTodo = async (id: Id<"todos">) => {
     Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
@@ -50,15 +58,6 @@ export default function Index() {
         onPress: () => deleteTodo({ id }),
       },
     ]);
-  };
-
-  const handleToggleTodo = async (id: Id<"todos">) => {
-    try {
-      await toggleTodo({ id });
-    } catch (error) {
-      console.log("Error Toggling todo", error);
-      Alert.alert("Error", "Failed to toggle todo");
-    }
   };
 
   const handleEditTodo = (todo: Todo) => {
@@ -94,7 +93,6 @@ export default function Index() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          {/* Checkbox */}
           <TouchableOpacity
             style={homeStyles.checkbox}
             activeOpacity={0.7}
@@ -119,7 +117,6 @@ export default function Index() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Edit or Display */}
           {isEditing ? (
             <View style={homeStyles.editContainer}>
               <TextInput
@@ -210,20 +207,17 @@ export default function Index() {
       <StatusBar barStyle={colors.statusBarStyle} />
       <SafeAreaView style={homeStyles.safeArea}>
         <Header />
+
         <TodoInput />
 
-        {/* Optimized Todo List */}
         <FlatList
           data={todos}
           renderItem={renderTodoItem}
           keyExtractor={(item) => item._id}
           style={homeStyles.todoList}
-          contentContainerStyle={[
-            homeStyles.todoListContent,
-            { paddingBottom: 40 }, // ensures no extra empty space but keeps bottom safe
-          ]}
+          contentContainerStyle={homeStyles.todoListContent}
           ListEmptyComponent={<EmptyState />}
-          showsVerticalScrollIndicator={false}
+          // showsVerticalScrollIndicator={false}
         />
       </SafeAreaView>
     </LinearGradient>
